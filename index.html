@@ -1,0 +1,205 @@
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowX Coupon</title>
+    <style>
+        :root {
+            --bg-body: #0b0f19;
+            --card-bg: #151c2c;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
+            --border-color: #243048;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .brand-name {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-tagline {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .coupon-area {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .item {
+            background-color: #0b0f19;
+            border-left: 4px solid var(--primary);
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .league-title {
+            font-size: 10px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+        }
+
+        .match-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 2px 0;
+        }
+
+        .market-title {
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        .odds-tag {
+            background-color: #1e293b;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .summary-box {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-odds {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="brand-header">
+        <div class="brand-name">GrowX Coupon</div>
+        <div class="brand-tagline">Générateur statistique de combinaisons à cote ~10</div>
+    </div>
+
+    <button onclick="generateGrowXCoupon()">GÉNÉRER UN COUPON</button>
+
+    <div id="coupon" class="coupon-area">
+        <div id="list"></div>
+        
+        <div class="summary-box">
+            <div>
+                <span style="font-size: 12px; color: var(--text-sub);">Probabilité estimée :</span>
+                <div id="prob-val" style="font-weight: 600; font-size: 14px;">0%</div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 12px; color: var(--text-sub);">Cote Totale :</span>
+                <div id="total-odds" class="total-odds">0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generateGrowXCoupon() {
+    try {
+        const API_URL = 'https://growx-coupon-api.onrender.com/api/generate-coupon';
+        
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        data.selections.forEach(item => {
+            list.innerHTML += `
+                <div class="item">
+                    <div>
+                        <div class="league-title">${item.league}</div>
+                        <div class="match-title">${item.match}</div>
+                        <div class="market-title">${item.market}</div>
+                    </div>
+                    <div class="odds-tag">${item.odds.toFixed(2)}</div>
+                </div>
+            `;
+        });
+
+        document.getElementById('total-odds').innerText = data.total_odds.toFixed(2);
+        document.getElementById('prob-val').innerText = data.combined_prob + '%';
+        document.getElementById('coupon').style.display = 'block';
+
+    } catch (e) {
+        alert("Erreur lors de la connexion au serveur GrowX API.");
+    }
+}
+</script>
+
+</body>
+</html>
