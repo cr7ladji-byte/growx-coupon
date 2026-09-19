@@ -167,44 +167,67 @@
     </div>
 </div>
 
+
 <script>
-  // 1. Réveille le serveur Render automatiquement dès que la page s'ouvre
+  // Réveille le serveur Render en arrière-plan
   document.addEventListener("DOMContentLoaded", () => {
-    fetch("https://foot-predict-analyzer-mrst.onrender.com")
-      .then(() => console.log("API Render connectée"))
-      .catch(() => console.log("Tentative de réveil envoyée à l'API"));
+    fetch("https://foot-predict-analyzer-mrst.onrender.com").catch(() => {});
   });
 
-  // 2. Fonction de génération du coupon
   async function generateGrowXCoupon() {
-    try {
-      const API_URL = 'https://foot-predict-analyzer-mrst.onrender.com/api/generate-coupon';
-      const response = await fetch(API_URL);
-      const data = await response.json();
+    const API_URL = 'https://foot-predict-analyzer-mrst.onrender.com/api/generate-coupon';
+    const button = document.querySelector("button");
+    const originalText = button.innerText;
 
-      const list = document.getElementById('list');
-      list.innerHTML = '';
+    button.innerText = "Connexion au serveur...";
+    button.disabled = true;
 
-      data.selections.forEach(item => {
-        list.innerHTML += `
-          <div class="item">
-            <div>
-              <div class="league-title">${item.league}</div>
-              <div class="match-title">${item.match}</div>
-              <div class="market-title">${item.market}</div>
+    let attempts = 0;
+    const maxAttempts = 8;
+
+    async function fetchWithRetry() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("Serveur en cours de démarrage");
+        const data = await response.json();
+
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        data.selections.forEach(item => {
+          list.innerHTML += `
+            <div class="item">
+              <div>
+                <div class="league-title">${item.league}</div>
+                <div class="match-title">${item.match}</div>
+                <div class="market-title">${item.market}</div>
+              </div>
+              <div class="odds-tag">${item.odds.toFixed(2)}</div>
             </div>
-            <div class="odds-tag">${item.odds.toFixed(2)}</div>
-          </div>
-        `;
-      });
+          `;
+        });
 
-      document.getElementById('total-odds').innerText = data.total_odds.toFixed(2);
-      document.getElementById('prob-val').innerText = data.combined_prob + '%';
-      document.getElementById('coupon').style.display = 'block';
+        document.getElementById('total-odds').innerText = data.total_odds.toFixed(2);
+        document.getElementById('prob-val').innerText = data.combined_prob + '%';
+        document.getElementById('coupon').style.display = 'block';
 
-    } catch (e) {
-      alert("Erreur lors de la connexion au serveur GrowX API.");
+        button.innerText = originalText;
+        button.disabled = false;
+
+      } catch (e) {
+        attempts++;
+        if (attempts < maxAttempts) {
+          button.innerText = `Démarrage du serveur... (${attempts * 5}s)`;
+          setTimeout(fetchWithRetry, 5000);
+        } else {
+          alert("Le serveur met du temps à répondre. Veuillez re-cliquer dans quelques secondes.");
+          button.innerText = originalText;
+          button.disabled = false;
+        }
+      }
     }
+
+    fetchWithRetry();
   }
 </script>
 
